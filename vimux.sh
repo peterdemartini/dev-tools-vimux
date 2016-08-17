@@ -12,20 +12,15 @@ setup_tab_zero() {
   tmux send-keys -t "${session}:0.0" "tmux kill-session -t ${session}" || return 1
 }
 
-setup_tab_one() {
+setup_tab_vim() {
   local session="$1"
   tmux new-window -t "${session}:1" -n "editor" || return 1 
   tmux send-keys -t "${session}:1.0" "vim" C-m || return 1
 }
 
-setup_tab_two() {
+setup_tab_project() {
   local session="$1"
   tmux new-window -t "${session}:2" -n "project" || return 1 
-}
-
-setup_tab_three() {
-  local session="$1"
-  tmux new-window -t "${session}:3" -n "test" || return 1 
 }
 
 has_session() {
@@ -132,10 +127,9 @@ main() {
   has_session "$session"
   if [ "$?" != "0" ]; then
     create_session "$session" || fatal 'unable to create session'
-    setup_tab_zero "$session" || fatal 'unable to setup tab 0'
-    setup_tab_one "$session" || fatal 'unable to setup tab 1'
-    setup_tab_two "$session" || fatal 'unable to setup tab 2'
-    setup_tab_three "$session" || fatal 'unable to setup tab 3'
+    setup_tab_zero "$session" || fatal 'unable to setup tab zero'
+    setup_tab_vim "$session" || fatal 'unable to setup tab vim'
+    setup_tab_project "$session" || fatal 'unable to setup tab project'
   fi
 
   select_tab "$session" "1" 2> /dev/null 
