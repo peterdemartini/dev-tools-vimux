@@ -30,7 +30,11 @@ has_session() {
 
 attach_session() {
   local session="$1"
-  tmux attach -t "$session" 
+  tmux attach-session -t "$session" 
+}
+
+start_server() {
+  tmux start-server
 }
 
 create_session() {
@@ -124,6 +128,7 @@ main() {
   fi
   local session="vimux-${project_id}"
 
+  start_server || fatal 'unable to start tmux server'
   has_session "$session"
   if [ "$?" != "0" ]; then
     create_session "$session" || fatal 'unable to create session'
