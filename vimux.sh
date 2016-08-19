@@ -23,11 +23,6 @@ setup_tab_project() {
   tmux new-window -t "${session}:2" -n "project" || return 1 
 }
 
-has_session() {
-  local session="$1"
-  tmux has-session -t "$session" 2> /dev/null
-}
-
 attach_session() {
   local session="$1"
   tmux attach-session -t "$session" 
@@ -129,14 +124,10 @@ main() {
   local session="vimux-${project_id}"
 
   start_server || fatal 'unable to start tmux server'
-  has_session "$session"
-  if [ "$?" != "0" ]; then
-    create_session "$session" || fatal 'unable to create session'
-    setup_tab_zero "$session" || fatal 'unable to setup tab zero'
-    setup_tab_vim "$session" || fatal 'unable to setup tab vim'
-    setup_tab_project "$session" || fatal 'unable to setup tab project'
-  fi
-
+  create_session "$session" || fatal 'unable to create session'
+  setup_tab_zero "$session" || fatal 'unable to setup tab zero'
+  setup_tab_vim "$session" || fatal 'unable to setup tab vim'
+  setup_tab_project "$session" || fatal 'unable to setup tab project'
   select_tab "$session" "1" 2> /dev/null 
   attach_session "$session"
 }
