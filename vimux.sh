@@ -6,6 +6,12 @@ select_tab() {
   tmux select-window -t "${session}:${tab}"
 }
 
+set_title() {
+  local project_name="$1"
+  tmux set-option set-titles on
+  tmux set-option set-titles-string "$project_name"
+}
+
 setup_tab_zero() {
   local session="$1"
   tmux send-keys -t "${session}:0.0" C-c "clear" C-m || return 1
@@ -14,18 +20,18 @@ setup_tab_zero() {
 
 setup_tab_vim() {
   local session="$1"
-  tmux new-window -t "${session}:1" -n "editor" || return 1 
+  tmux new-window -t "${session}:1" -n "editor" || return 1
   tmux send-keys -t "${session}:1.0" "vim" C-m || return 1
 }
 
 setup_tab_project() {
   local session="$1"
-  tmux new-window -t "${session}:2" -n "project" || return 1 
+  tmux new-window -t "${session}:2" -n "project" || return 1
 }
 
 attach_session() {
   local session="$1"
-  tmux attach-session -t "$session" 
+  tmux attach-session -t "$session"
 }
 
 start_server() {
@@ -34,7 +40,7 @@ start_server() {
 
 create_session() {
   local session="$1"
-  tmux new-session -d -s "$session" -n √ø 
+  tmux new-session -d -s "$session" -n √ø
 }
 
 fatal() {
@@ -106,29 +112,30 @@ main() {
     project_dir="$PWD"
   fi
 
-  if [ ! -d "$project_dir" ]; then 
+  if [ ! -d "$project_dir" ]; then
     fatal "$project_dir is not a directory"
   fi
 
   cd "$project_dir"
-  
+
   local project_name="$(basename "$project_dir")"
   local project_id=""
   if [ -z "$(which node)" ]; then
     local uuid="$(uuidgen)"
     project_id="${uuid:0:4}"
   else
-    local string_js="'${project_name}'.split('-').map(function(s){return s[0] + s[s.length -1]}).join('')"
+    local string_js="'${project_name}'.split('-').map(function(s){return s[0] + s[s.length -1].replace(/[^a-z0-9]+/gi, '')}).join('')"
     project_id="$(node -e "console.log(${string_js})")"
   fi
   local session="vimux-${project_id}"
 
-  start_server || fatal 'unable to start tmux server'
-  create_session "$session" || fatal 'unable to create session'
-  setup_tab_zero "$session" || fatal 'unable to setup tab zero'
-  setup_tab_vim "$session" || fatal 'unable to setup tab vim'
-  setup_tab_project "$session" || fatal 'unable to setup tab project'
-  select_tab "$session" "1" 2> /dev/null 
+  start_server
+  create_session "$session"
+  setup_tab_zero "$session"
+  setup_tab_vim "$session"
+  setup_tab_project "$session"
+  select_tab "$session" "1" 2> /dev/null
+  set_title "$project_name"
   attach_session "$session"
 }
 
