@@ -31,16 +31,17 @@ setup_tab_project() {
 
 attach_session() {
   local session="$1"
-  tmux attach-session -t "$session"
-}
-
-start_server() {
-  tmux start-server
+  tmux attach -t "$session"
 }
 
 create_session() {
   local session="$1"
-  tmux new-session -d -s "$session" -n √ø
+  tmux new-session -s "$session" -n √ø -d
+}
+
+has_session() {
+  local session="$1"
+  tmux has-session -t "$session"
 }
 
 fatal() {
@@ -129,13 +130,15 @@ main() {
   fi
   local session="vimux-${project_id}"
 
-  start_server
-  create_session "$session"
-  setup_tab_zero "$session"
-  setup_tab_vim "$session"
-  setup_tab_project "$session"
-  select_tab "$session" "1" 2> /dev/null
-  set_title "$project_name"
+  has_session "$session"
+  if [ "$?" != "0" ]; then
+    create_session "$session"
+    setup_tab_zero "$session"
+    setup_tab_vim "$session"
+    setup_tab_project "$session"
+    set_title "$project_name"
+    select_tab "$session" "1" 2> /dev/null
+  fi
   attach_session "$session"
 }
 
