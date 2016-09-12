@@ -6,15 +6,9 @@ select_tab() {
   tmux select-window -t "${session}:${tab}"
 }
 
-set_title() {
-  local project_name="$1"
-  tmux set-option set-titles on
-  tmux set-option set-titles-string "$project_name"
-}
-
 setup_tab_zero() {
   local session="$1"
-  tmux send-keys -t "${session}:0.0" C-c "clear" C-m || return 1
+  tmux send-keys -t "${session}:0.0" C-m || return 1
   tmux send-keys -t "${session}:0.0" "tmux kill-session -t ${session}" || return 1
 }
 
@@ -29,9 +23,13 @@ setup_tab_project() {
   tmux new-window -t "${session}:2" -n "project" || return 1
 }
 
+start_server() {
+  tmux start-server
+}
+
 attach_session() {
   local session="$1"
-  tmux attach -t "$session"
+  tmux attach-session -t "$session"
 }
 
 create_session() {
@@ -130,13 +128,13 @@ main() {
   fi
   local session="vimux-${project_id}"
 
+  start_server
   has_session "$session"
   if [ "$?" != "0" ]; then
     create_session "$session"
     setup_tab_zero "$session"
     setup_tab_vim "$session"
     setup_tab_project "$session"
-    set_title "$project_name"
     select_tab "$session" "1" 2> /dev/null
   fi
   attach_session "$session"
